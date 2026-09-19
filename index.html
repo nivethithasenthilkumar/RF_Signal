@@ -3,482 +3,797 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RF Signal Level Prediction — ML System</title>
+  <title>RF Signal Level Predictor — Live Transmission Console</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0b0f19;
-      --surface: #131b2e;
-      --surface-border: #1e293b;
-      --primary: #38bdf8;
-      --primary-glow: rgba(56, 189, 248, 0.2);
-      --accent: #818cf8;
-      --text: #f1f5f9;
+      --bg: #090d16;
+      --card-bg: #111827;
+      --card-border: #1f293d;
+      --primary: #06b6d4;
+      --primary-hover: #0891b2;
+      --primary-glow: rgba(6, 182, 212, 0.25);
+      --accent: #6366f1;
+      --text: #f8fafc;
       --text-muted: #94a3b8;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --card-bg: rgba(19, 27, 46, 0.85);
+      --text-dim: #64748b;
+      --excellent: #10b981;
+      --good: #0ea5e9;
+      --fair: #f59e0b;
+      --poor: #ef4444;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.6;
-      padding: 0;
-    }
-    header {
-      background: linear-gradient(180deg, rgba(30, 41, 59, 0.8) 0%, rgba(11, 15, 25, 0.95) 100%);
-      border-bottom: 1px solid var(--surface-border);
-      padding: 3rem 1.5rem 2.5rem;
-      text-align: center;
-      position: relative;
-    }
-    .badge {
-      display: inline-block;
-      padding: 0.35rem 0.85rem;
-      border-radius: 9999px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      background: var(--primary-glow);
-      color: var(--primary);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      margin-bottom: 1rem;
-    }
-    h1 {
-      font-size: 2.5rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      margin-bottom: 0.75rem;
-      background: linear-gradient(135deg, #ffffff 30%, var(--primary) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    p.lead {
-      font-size: 1.15rem;
-      color: var(--text-muted);
-      max-width: 780px;
-      margin: 0 auto 1.5rem;
-    }
-    .links-row {
+      line-height: 1.5;
+      min-height: 100vh;
       display: flex;
-      justify-content: center;
-      gap: 1rem;
-      flex-wrap: wrap;
+      flex-direction: column;
     }
-    .btn {
-      display: inline-flex;
+
+    /* Top Navigation Bar */
+    nav {
+      background: rgba(17, 24, 39, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.65rem 1.35rem;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      text-decoration: none;
-      transition: all 0.2s ease;
-      cursor: pointer;
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
-    .btn-primary {
-      background: #2563eb;
-      color: white;
-      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
-    }
-    .btn-primary:hover { background: #1d4ed8; }
-    .btn-outline {
-      background: transparent;
-      color: var(--text);
-      border: 1px solid var(--surface-border);
-    }
-    .btn-outline:hover { background: var(--surface); border-color: var(--primary); }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2.5rem 1.5rem;
-    }
-
-    /* KPI Highlights */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1.25rem;
-      margin-bottom: 3rem;
-    }
-    .kpi-card {
-      background: var(--card-bg);
-      border: 1px solid var(--surface-border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      text-align: center;
-      backdrop-filter: blur(8px);
-    }
-    .kpi-value {
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: var(--primary);
-      margin-bottom: 0.25rem;
-    }
-    .kpi-label {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    /* Section Styling */
-    h2.section-title {
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
+    .logo-area {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      border-bottom: 2px solid var(--surface-border);
-      padding-bottom: 0.75rem;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
     }
-
-    /* Interactive Simulator */
-    .sim-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-      background: var(--card-bg);
-      border: 1px solid var(--surface-border);
-      border-radius: 16px;
-      padding: 2rem;
-      margin-bottom: 3.5rem;
-      backdrop-filter: blur(10px);
-    }
-    @media (max-width: 850px) {
-      .sim-container { grid-template-columns: 1fr; }
-    }
-    .control-group {
-      margin-bottom: 1.25rem;
-    }
-    .control-header {
+    .logo-badge {
+      background: linear-gradient(135deg, #06b6d4, #6366f1);
+      color: white;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
       display: flex;
-      justify-content: space-between;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: 0 0 16px rgba(6, 182, 212, 0.4);
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
       font-size: 0.9rem;
       font-weight: 600;
-      margin-bottom: 0.4rem;
-    }
-    .control-value {
-      color: var(--primary);
-      font-family: 'JetBrains Mono', monospace;
-    }
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--primary);
-      cursor: pointer;
-    }
-    select {
-      width: 100%;
-      background: #0f172a;
-      border: 1px solid var(--surface-border);
-      color: white;
-      padding: 0.65rem 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
       border-radius: 8px;
-      font-size: 0.95rem;
-      outline: none;
+      border: 1px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.03);
+      transition: all 0.2s;
+    }
+    .nav-links a:hover {
+      color: white;
+      border-color: var(--primary);
+      background: rgba(6, 182, 212, 0.1);
     }
 
-    /* Results Box */
-    .result-box {
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 3rem 1.5rem 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.9rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: rgba(6, 182, 212, 0.12);
+      color: var(--primary);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 {
+      font-size: 2.75rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.03em;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 1.5rem;
+    }
+
+    /* Quick Preset Scenarios */
+    .presets-row {
+      display: flex;
+      justify-content: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+    .preset-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: var(--text);
+      padding: 0.45rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .preset-btn:hover {
+      background: var(--primary);
+      color: #090d16;
+      border-color: var(--primary);
+    }
+
+    /* Main Console Container */
+    .main-layout {
+      max-width: 1200px;
+      margin: 0 auto 3rem;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 2rem;
+    }
+    @media (max-width: 900px) {
+      .main-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Transmitter Panel */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .card-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1.75rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.75rem;
+    }
+    @media (max-width: 550px) {
+      .form-grid { grid-template-columns: 1fr; }
+    }
+
+    .form-group {
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      background: #0f172a;
-      border: 1px solid var(--surface-border);
-      border-radius: 12px;
-      padding: 2rem;
-      text-align: center;
+      gap: 0.4rem;
     }
-    .status-badge {
+    .form-group label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-wrapper input, .input-wrapper select {
+      width: 100%;
+      background: #0b1120;
+      border: 1px solid #1e293b;
+      color: #ffffff;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-family: 'JetBrains Mono', monospace;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-wrapper select {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .input-wrapper input:focus, .input-wrapper select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    .input-unit {
+      position: absolute;
+      right: 1rem;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      font-weight: 600;
+      pointer-events: none;
+    }
+
+    /* Big Send Button */
+    .btn-transmit {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      box-shadow: 0 4px 20px rgba(6, 182, 212, 0.4);
+      transition: all 0.25s ease;
+    }
+    .btn-transmit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(6, 182, 212, 0.6);
+      filter: brightness(1.1);
+    }
+    .btn-transmit:active {
+      transform: translateY(0);
+    }
+
+    /* Receiver / Prediction Panel */
+    .receiver-card {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Signal Radar Pulse Animation */
+    .pulse-container {
+      position: relative;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      border-radius: 14px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, rgba(11, 17, 32, 0.6) 80%);
+      border: 1px dashed #1e293b;
+      overflow: hidden;
+    }
+    .wave-circle {
+      position: absolute;
+      border: 2px solid var(--primary);
+      border-radius: 50%;
+      opacity: 0;
+    }
+    .wave-circle.active {
+      animation: ripple 1.6s ease-out infinite;
+    }
+    .wave-circle:nth-child(2).active {
+      animation-delay: 0.5s;
+    }
+    .wave-circle:nth-child(3).active {
+      animation-delay: 1s;
+    }
+    @keyframes ripple {
+      0% { width: 10px; height: 10px; opacity: 1; }
+      100% { width: 180px; height: 180px; opacity: 0; }
+    }
+    .tower-icon {
+      font-size: 2.4rem;
+      z-index: 2;
+    }
+
+    /* Empty State before first send */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-dim);
+    }
+    .empty-state svg {
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    /* Prediction Display */
+    .prediction-result {
+      display: none;
+      animation: fadeIn 0.4s ease forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .level-badge {
       display: inline-block;
-      align-self: center;
-      padding: 0.6rem 1.6rem;
+      padding: 0.5rem 1.75rem;
       border-radius: 9999px;
-      font-size: 1.35rem;
+      font-size: 1.4rem;
       font-weight: 800;
       letter-spacing: 0.05em;
-      margin-bottom: 1rem;
+      margin-bottom: 0.75rem;
     }
-    .status-excellent { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; }
-    .status-good { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid #38bdf8; }
-    .status-fair { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
-    .status-poor { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
+    .badge-excellent { background: rgba(16, 185, 129, 0.2); color: var(--excellent); border: 1.5px solid var(--excellent); }
+    .badge-good { background: rgba(14, 165, 233, 0.2); color: var(--good); border: 1.5px solid var(--good); }
+    .badge-fair { background: rgba(245, 158, 11, 0.2); color: var(--fair); border: 1.5px solid var(--fair); }
+    .badge-poor { background: rgba(239, 68, 68, 0.2); color: var(--poor); border: 1.5px solid var(--poor); }
 
-    .rssi-display {
-      font-size: 2.8rem;
-      font-weight: 800;
+    .rssi-value {
       font-family: 'JetBrains Mono', monospace;
-      margin-bottom: 0.5rem;
+      font-size: 2.6rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 0.25rem;
     }
-    .prob-bar-container {
-      margin-top: 1.5rem;
+    .rssi-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Metric breakdown chips */
+    .chips-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .chip {
+      background: #0b1120;
+      border: 1px solid #1e293b;
+      padding: 0.75rem;
+      border-radius: 10px;
       text-align: left;
     }
-    .prob-row {
+    .chip-name {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .chip-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* Class probability bars */
+    .bars-section {
+      background: #0b1120;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .bar-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 0.5rem;
-      font-size: 0.85rem;
+      margin: 0.45rem 0;
+      font-size: 0.82rem;
+      font-weight: 600;
     }
-    .prob-track {
+    .bar-track {
       flex-grow: 1;
-      height: 8px;
+      height: 7px;
       background: #1e293b;
       border-radius: 4px;
-      margin: 0 1rem;
+      margin: 0 0.85rem;
       overflow: hidden;
     }
-    .prob-fill {
+    .bar-fill {
       height: 100%;
       border-radius: 4px;
-      transition: width 0.3s ease;
+      transition: width 0.4s ease;
     }
 
-    /* Diagnostics Gallery */
-    .plots-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-      gap: 2rem;
-      margin-bottom: 3.5rem;
+    /* Recommendation banner */
+    .advice-box {
+      border-radius: 10px;
+      padding: 1rem;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 4px solid var(--primary);
+      text-align: left;
     }
-    @media (max-width: 600px) {
-      .plots-grid { grid-template-columns: 1fr; }
+
+    /* Recent History Table */
+    .history-card {
+      max-width: 1200px;
+      margin: 0 auto 3rem;
+      padding: 0 1.5rem;
+      width: 100%;
     }
-    .plot-card {
+    .history-table-wrapper {
       background: var(--card-bg);
-      border: 1px solid var(--surface-border);
-      border-radius: 14px;
-      padding: 1.25rem;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
       overflow: hidden;
     }
-    .plot-card h3 {
-      font-size: 1.15rem;
+    .history-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    th {
+      background: #0b1120;
+      color: var(--text-dim);
       font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.75rem 1.25rem;
+      text-align: left;
+    }
+    td {
+      padding: 0.85rem 1.25rem;
+      border-top: 1px solid #1e293b;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .status-pill {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    /* Plots Section */
+    .gallery-section {
+      max-width: 1200px;
+      margin: 0 auto 4rem;
+      padding: 0 1.5rem;
+      width: 100%;
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 750px) {
+      .gallery-grid { grid-template-columns: 1fr; }
+    }
+    .plot-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.25rem;
+    }
+    .plot-box h3 {
+      font-size: 1rem;
+      font-weight: 700;
       margin-bottom: 0.75rem;
       color: var(--primary);
     }
-    .plot-card img {
+    .plot-box img {
       width: 100%;
-      height: auto;
       border-radius: 8px;
-      background: #ffffff;
+      background: white;
       padding: 0.25rem;
-      transition: transform 0.2s ease;
-    }
-
-    /* Code Block */
-    pre {
-      background: #0f172a;
-      border: 1px solid var(--surface-border);
-      border-radius: 10px;
-      padding: 1.25rem;
-      overflow-x: auto;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
-      color: #38bdf8;
-      margin-bottom: 2rem;
     }
 
     footer {
-      border-top: 1px solid var(--surface-border);
+      background: #090d16;
+      border-top: 1px solid var(--card-border);
       padding: 2.5rem 1.5rem;
       text-align: center;
-      color: var(--text-muted);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
+      color: var(--text-dim);
+      margin-top: auto;
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="badge">Machine Learning &bull; Wireless Signal Processing</div>
-    <h1>RF Signal Level Prediction System</h1>
-    <p class="lead">
-      Physics-grounded Radio Frequency signal quality classification achieving <strong>90.3% Test Accuracy</strong> and <strong>0.982 Multiclass ROC-AUC</strong> with Scikit-Learn.
-    </p>
-    <div class="links-row">
-      <a class="btn btn-primary" href="https://github.com/nivethithasenthilkumar/RF_Signal" target="_blank">
-        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-        View GitHub Repository
+  <nav>
+    <div class="logo-area">
+      <div class="logo-badge">📡</div>
+      <span>RF Predictor AI</span>
+    </div>
+    <div class="nav-links">
+      <a href="https://github.com/nivethithasenthilkumar/RF_Signal" target="_blank">
+        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub Code
       </a>
-      <a class="btn btn-outline" href="#simulator">Live Interactive Simulator</a>
     </div>
-  </header>
+  </nav>
 
-  <div class="container">
+  <div class="hero">
+    <div class="hero-badge">Physics-Grounded Machine Learning System</div>
+    <h1>Send Signal &amp; <span>Predict Level</span></h1>
+    <p>Configure RF transmitter parameters and click <strong>"Send RF Signal"</strong> to simulate physical path-loss propagation and generate instant ML signal quality predictions.</p>
 
-    <!-- KPI Cards -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-value">90.28%</div>
-        <div class="kpi-label">Test Set Accuracy</div>
+    <div class="presets-row">
+      <span style="font-size: 0.8rem; font-weight:700; color:var(--text-dim); align-self:center;">QUICK PRESETS:</span>
+      <button class="preset-btn" onclick="applyPreset('5g_urban')">🏙️ 5G Urban Cell</button>
+      <button class="preset-btn" onclick="applyPreset('rural_los')">🌾 Rural Line-of-Sight</button>
+      <button class="preset-btn" onclick="applyPreset('indoor_wifi')">🏢 Deep Indoor (WiFi)</button>
+      <button class="preset-btn" onclick="applyPreset('cell_edge')">🚗 Dense Urban Cell-Edge</button>
+    </div>
+  </div>
+
+  <div class="main-layout">
+
+    <!-- Left: Transmitter Console -->
+    <div class="card">
+      <div class="card-title">
+        <span>📡 Transmitter Configuration</span>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-value">0.9821</div>
-        <div class="kpi-label">Multiclass ROC-AUC (OvR)</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value">0.9020</div>
-        <div class="kpi-label">Weighted F1-Score</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value">12,000</div>
-        <div class="kpi-label">Physics-Grounded Samples</div>
-      </div>
+      <div class="card-subtitle">Set RF channel parameters or load a preset above</div>
+
+      <form id="rf-form" onsubmit="event.preventDefault(); sendSignal();">
+        <div class="form-grid">
+          
+          <div class="form-group">
+            <label>Distance</label>
+            <div class="input-wrapper">
+              <input type="number" id="distance_m" value="450" min="5" max="10000" step="10" required>
+              <span class="input-unit">m</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Carrier Frequency</label>
+            <div class="input-wrapper">
+              <input type="number" id="frequency_mhz" value="2100" min="100" max="8000" step="50" required>
+              <span class="input-unit">MHz</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Transmit Power (Tx)</label>
+            <div class="input-wrapper">
+              <input type="number" id="tx_power_dbm" value="43" min="10" max="50" step="1" required>
+              <span class="input-unit">dBm</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Tx Antenna Gain</label>
+            <div class="input-wrapper">
+              <input type="number" id="tx_gain_dbi" value="15" min="0" max="25" step="0.5" required>
+              <span class="input-unit">dBi</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Rx Antenna Gain</label>
+            <div class="input-wrapper">
+              <input type="number" id="rx_gain_dbi" value="2" min="0" max="15" step="0.5" required>
+              <span class="input-unit">dBi</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Obstacle Count</label>
+            <div class="input-wrapper">
+              <input type="number" id="obstacle_count" value="2" min="0" max="20" step="1" required>
+              <span class="input-unit">walls</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Environment</label>
+            <div class="input-wrapper">
+              <select id="environment">
+                <option value="Rural">Rural (n=2.2)</option>
+                <option value="Suburban">Suburban (n=3.0)</option>
+                <option value="Urban" selected>Urban (n=3.7)</option>
+                <option value="Dense Urban">Dense Urban (n=4.2)</option>
+                <option value="Indoor">Indoor (n=4.6)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Weather Condition</label>
+            <div class="input-wrapper">
+              <select id="weather_condition">
+                <option value="Clear" selected>Clear Sky</option>
+                <option value="Rain">Rain (Attenuated)</option>
+                <option value="Fog">Fog</option>
+                <option value="Storm">Severe Storm</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+
+        <button type="submit" class="btn-transmit" id="btn-submit">
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Send RF Signal &amp; Predict
+        </button>
+      </form>
     </div>
 
-    <!-- Live Simulator -->
-    <h2 class="section-title" id="simulator">⚡ Interactive RF Signal Prediction Simulator</h2>
-    <div class="sim-container">
-      <div class="controls-panel">
-        <div class="control-group">
-          <div class="control-header">
-            <span>Distance (meters)</span>
-            <span class="control-value" id="val-distance">500 m</span>
-          </div>
-          <input type="range" id="input-distance" min="10" max="5000" step="10" value="500">
-        </div>
+    <!-- Right: Receiver Output & Prediction -->
+    <div class="card receiver-card">
+      <div class="card-title">
+        <span>📲 Receiver Terminal &amp; Prediction</span>
+      </div>
+      <div class="card-subtitle">Real-time model prediction and signal budget diagnostics</div>
 
-        <div class="control-group">
-          <div class="control-header">
-            <span>Carrier Frequency</span>
-            <span class="control-value" id="val-freq">2100 MHz</span>
-          </div>
-          <input type="range" id="input-freq" min="700" max="5800" step="50" value="2100">
-        </div>
-
-        <div class="control-group">
-          <div class="control-header">
-            <span>Tx Power (dBm)</span>
-            <span class="control-value" id="val-power">43 dBm</span>
-          </div>
-          <input type="range" id="input-power" min="14" max="46" step="1" value="43">
-        </div>
-
-        <div class="control-group">
-          <div class="control-header">
-            <span>Tx Antenna Gain</span>
-            <span class="control-value" id="val-txgain">15 dBi</span>
-          </div>
-          <input type="range" id="input-txgain" min="2" max="20" step="1" value="15">
-        </div>
-
-        <div class="control-group">
-          <div class="control-header">
-            <span>Physical Obstacles / Walls</span>
-            <span class="control-value" id="val-obstacles">2</span>
-          </div>
-          <input type="range" id="input-obstacles" min="0" max="15" step="1" value="2">
-        </div>
-
-        <div class="control-group">
-          <label style="font-size:0.9rem; font-weight:600; margin-bottom:0.4rem; display:block;">Propagation Environment</label>
-          <select id="input-env">
-            <option value="Rural">Rural (Line-of-Sight, n=2.2)</option>
-            <option value="Suburban" selected>Suburban (Light clutter, n=3.0)</option>
-            <option value="Urban">Urban (High clutter, n=3.7)</option>
-            <option value="Dense Urban">Dense Urban (High-rise, n=4.2)</option>
-            <option value="Indoor">Indoor (Non-line-of-sight, n=4.6)</option>
-          </select>
-        </div>
+      <div class="pulse-container">
+        <div class="wave-circle" id="wave1"></div>
+        <div class="wave-circle" id="wave2"></div>
+        <div class="wave-circle" id="wave3"></div>
+        <div class="tower-icon" id="status-icon">📡</div>
       </div>
 
-      <div class="result-box">
-        <div id="badge-signal" class="status-badge status-good">GOOD</div>
-        <div class="rssi-display" id="display-rssi">-78.4 dBm</div>
-        <p id="display-desc" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
-          Strong, reliable connection. High throughput HD streaming and voice.
-        </p>
+      <!-- Empty prompt before first signal send -->
+      <div class="empty-state" id="empty-state">
+        <p style="font-weight:600; font-size:1.05rem; color:var(--text); margin-bottom:0.4rem;">No Signal Received Yet</p>
+        <p style="font-size:0.85rem;">Click <strong>"Send RF Signal &amp; Predict"</strong> to transmit and generate predictions.</p>
+      </div>
 
-        <div class="prob-bar-container">
-          <div class="prob-row">
+      <!-- Active Prediction Result (Visible upon send) -->
+      <div class="prediction-result" id="prediction-result">
+        
+        <div style="text-align: center;">
+          <div id="res-badge" class="level-badge badge-good">GOOD</div>
+          <div class="rssi-value" id="res-rssi">-78.2 dBm</div>
+          <div class="rssi-label">Received Signal Strength (RSSI)</div>
+        </div>
+
+        <div class="chips-grid">
+          <div class="chip">
+            <div class="chip-name">Model Confidence</div>
+            <div class="chip-val" id="res-conf">91.4%</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">EIRP Radiated Power</div>
+            <div class="chip-val" id="res-eirp">58.0 dBm</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">Estimated Path Loss</div>
+            <div class="chip-val" id="res-loss">121.5 dB</div>
+          </div>
+          <div class="chip">
+            <div class="chip-name">Antenna Total Gain</div>
+            <div class="chip-val" id="res-gain">+17.0 dBi</div>
+          </div>
+        </div>
+
+        <div class="bars-section">
+          <div style="font-size:0.75rem; color:var(--text-dim); text-transform:uppercase; font-weight:700; margin-bottom:0.5rem;">
+            Class Probabilities
+          </div>
+          <div class="bar-row">
             <span>Excellent</span>
-            <div class="prob-track"><div id="bar-excellent" class="prob-fill" style="width: 10%; background:#10b981;"></div></div>
-            <span id="pct-excellent">10%</span>
+            <div class="bar-track"><div id="bar-exc" class="bar-fill" style="width: 5%; background:var(--excellent);"></div></div>
+            <span id="txt-exc" style="font-family:'JetBrains Mono'">5%</span>
           </div>
-          <div class="prob-row">
+          <div class="bar-row">
             <span>Good</span>
-            <div class="prob-track"><div id="bar-good" class="prob-fill" style="width: 75%; background:#38bdf8;"></div></div>
-            <span id="pct-good">75%</span>
+            <div class="bar-track"><div id="bar-good" class="bar-fill" style="width: 85%; background:var(--good);"></div></div>
+            <span id="txt-good" style="font-family:'JetBrains Mono'">85%</span>
           </div>
-          <div class="prob-row">
+          <div class="bar-row">
             <span>Fair</span>
-            <div class="prob-track"><div id="bar-fair" class="prob-fill" style="width: 15%; background:#f59e0b;"></div></div>
-            <span id="pct-fair">15%</span>
+            <div class="bar-track"><div id="bar-fair" class="bar-fill" style="width: 10%; background:var(--fair);"></div></div>
+            <span id="txt-fair" style="font-family:'JetBrains Mono'">10%</span>
           </div>
-          <div class="prob-row">
+          <div class="bar-row">
             <span>Poor</span>
-            <div class="prob-track"><div id="bar-poor" class="prob-fill" style="width: 0%; background:#ef4444;"></div></div>
-            <span id="pct-poor">0%</span>
+            <div class="bar-track"><div id="bar-poor" class="bar-fill" style="width: 0%; background:var(--poor);"></div></div>
+            <span id="txt-poor" style="font-family:'JetBrains Mono'">0%</span>
           </div>
         </div>
+
+        <div class="advice-box" id="res-advice">
+          Strong, stable connection. High throughput HD streaming and minimal packet loss.
+        </div>
+
       </div>
+
     </div>
-
-    <!-- Diagnostic Visualizations -->
-    <h2 class="section-title">📈 Model Evaluation & Diagnostics</h2>
-    <div class="plots-grid">
-      <div class="plot-card">
-        <h3>Confusion Matrix (Raw Counts & Normalized %)</h3>
-        <img src="reports/confusion_matrix.png" alt="Confusion Matrix">
-      </div>
-      <div class="plot-card">
-        <h3>Multiclass One-vs-Rest ROC Curves (AUC = 0.982)</h3>
-        <img src="reports/roc_curves.png" alt="ROC Curves">
-      </div>
-      <div class="plot-card">
-        <h3>Multiclass Precision-Recall Curves</h3>
-        <img src="reports/pr_curves.png" alt="Precision-Recall Curves">
-      </div>
-      <div class="plot-card">
-        <h3>Test Set Permutation Feature Importance</h3>
-        <img src="reports/feature_importance.png" alt="Feature Importance">
-      </div>
-    </div>
-
-    <!-- Python Quickstart -->
-    <h2 class="section-title">💻 Python Production Usage</h2>
-    <pre><code>from src.predict import predict_signal_level
-
-# Execute inference for a mobile user equipment connection
-result = predict_signal_level(
-    frequency_mhz=2100.0,
-    distance_m=650.0,
-    tx_power_dbm=40.0,
-    tx_gain_dbi=16.0,
-    rx_gain_dbi=2.0,
-    environment="Urban",
-    obstacle_count=4,
-    humidity_pct=65.0,
-    weather_condition="Rain"
-)
-
-print(f"Predicted Signal: {result['predicted_signal_level']}")  # e.g. 'Poor' / 'Fair' / 'Good'
-print(f"Confidence:       {result['confidence']:.2%}")
-print(f"Probabilities:    {result['probabilities']}")</code></pre>
 
   </div>
 
+  <!-- Recent Transmissions Log Table -->
+  <div class="history-card">
+    <div class="history-table-wrapper">
+      <div class="history-header">
+        <h3 style="font-size:1.05rem; font-weight:700;">🕒 Transmission History Log</h3>
+        <span style="font-size:0.8rem; color:var(--text-dim);" id="history-count">0 sent signals</span>
+      </div>
+      <div style="overflow-x: auto;">
+        <table id="history-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Frequency</th>
+              <th>Distance</th>
+              <th>Environment</th>
+              <th>Tx Power</th>
+              <th>Estimated RSSI</th>
+              <th>Predicted Tier</th>
+              <th>Confidence</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr>
+              <td colspan="8" style="text-align:center; color:var(--text-dim); padding:2rem;">No transmissions yet. Hit Send to test.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Model Diagnostic Visualizations -->
+  <div class="gallery-section">
+    <h2 style="font-size:1.5rem; font-weight:800; margin-bottom:1.5rem;">📊 Model Evaluation &amp; Diagnostics Gallery</h2>
+    <div class="gallery-grid">
+      <div class="plot-box">
+        <h3>Confusion Matrix (Raw Counts &amp; Normalized %)</h3>
+        <img src="reports/confusion_matrix.png" alt="Confusion Matrix">
+      </div>
+      <div class="plot-box">
+        <h3>Multiclass ROC Curves (ROC-AUC = 0.982)</h3>
+        <img src="reports/roc_curves.png" alt="ROC Curves">
+      </div>
+      <div class="plot-box">
+        <h3>Precision-Recall Curves</h3>
+        <img src="reports/pr_curves.png" alt="Precision-Recall Curves">
+      </div>
+      <div class="plot-box">
+        <h3>Permutation Feature Importance (Held-Out Test Set)</h3>
+        <img src="reports/feature_importance.png" alt="Feature Importance">
+      </div>
+    </div>
+  </div>
+
   <footer>
-    <p>&copy; 2026 Nivethitha Senthilkumar &bull; <a href="https://github.com/nivethithasenthilkumar/RF_Signal" style="color:var(--primary); text-decoration:none;">GitHub Repository</a></p>
+    <p>&copy; 2026 Nivethitha Senthilkumar &bull; <a href="https://github.com/nivethithasenthilkumar/RF_Signal" style="color:var(--primary); text-decoration:none;">GitHub Code Repository</a></p>
   </footer>
 
   <script>
-    const distSlider = document.getElementById('input-distance');
-    const freqSlider = document.getElementById('input-freq');
-    const powerSlider = document.getElementById('input-power');
-    const txgainSlider = document.getElementById('input-txgain');
-    const obsSlider = document.getElementById('input-obstacles');
-    const envSelect = document.getElementById('input-env');
-
     const envParams = {
       'Rural': { n: 2.2, base: 0.0 },
       'Suburban': { n: 3.0, base: 4.0 },
@@ -487,77 +802,172 @@ print(f"Probabilities:    {result['probabilities']}")</code></pre>
       'Indoor': { n: 4.6, base: 18.0 }
     };
 
-    function updateSimulation() {
-      const d = parseFloat(distSlider.value);
-      const f = parseFloat(freqSlider.value);
-      const ptx = parseFloat(powerSlider.value);
-      const gtx = parseFloat(txgainSlider.value);
-      const grx = 2.0;
-      const obs = parseFloat(obsSlider.value);
-      const env = envSelect.value;
+    const weatherLosses = {
+      'Clear': 0.0,
+      'Fog': 0.8,
+      'Rain': 2.5,
+      'Storm': 5.0
+    };
 
-      document.getElementById('val-distance').innerText = d + ' m';
-      document.getElementById('val-freq').innerText = f + ' MHz';
-      document.getElementById('val-power').innerText = ptx + ' dBm';
-      document.getElementById('val-txgain').innerText = gtx + ' dBi';
-      document.getElementById('val-obstacles').innerText = obs;
+    const presets = {
+      '5g_urban': { d: 350, f: 3500, p: 43, gtx: 16, grx: 2, obs: 3, env: 'Urban', w: 'Clear' },
+      'rural_los': { d: 1800, f: 850, p: 43, gtx: 15, grx: 2, obs: 0, env: 'Rural', w: 'Clear' },
+      'indoor_wifi': { d: 45, f: 5200, p: 20, gtx: 4, grx: 2, obs: 4, env: 'Indoor', w: 'Clear' },
+      'cell_edge': { d: 1200, f: 2600, p: 38, gtx: 14, grx: 0, obs: 8, env: 'Dense Urban', w: 'Rain' }
+    };
 
-      // Physics Link Budget calculation
+    function applyPreset(name) {
+      const p = presets[name];
+      if (!p) return;
+      document.getElementById('distance_m').value = p.d;
+      document.getElementById('frequency_mhz').value = p.f;
+      document.getElementById('tx_power_dbm').value = p.p;
+      document.getElementById('tx_gain_dbi').value = p.gtx;
+      document.getElementById('rx_gain_dbi').value = p.grx;
+      document.getElementById('obstacle_count').value = p.obs;
+      document.getElementById('environment').value = p.env;
+      document.getElementById('weather_condition').value = p.w;
+      sendSignal();
+    }
+
+    let historyItems = [];
+
+    function sendSignal() {
+      // 1. Read input values
+      const d = parseFloat(document.getElementById('distance_m').value);
+      const f = parseFloat(document.getElementById('frequency_mhz').value);
+      const ptx = parseFloat(document.getElementById('tx_power_dbm').value);
+      const gtx = parseFloat(document.getElementById('tx_gain_dbi').value);
+      const grx = parseFloat(document.getElementById('rx_gain_dbi').value);
+      const obs = parseFloat(document.getElementById('obstacle_count').value);
+      const env = document.getElementById('environment').value;
+      const weather = document.getElementById('weather_condition').value;
+
+      // 2. Animate Radar Waves
+      const waves = [document.getElementById('wave1'), document.getElementById('wave2'), document.getElementById('wave3')];
+      waves.forEach(w => {
+        w.classList.remove('active');
+        void w.offsetWidth; // trigger reflow
+        w.classList.add('active');
+      });
+
+      // 3. Physics Link Budget Simulation
       const pl0 = 20.0 * Math.log10(f) - 27.55;
       const nExp = envParams[env].n;
       const baseAtt = envParams[env].base;
       const plDist = 10.0 * nExp * Math.log10(Math.max(d, 1.0));
       const obsLoss = obs * 2.4;
-      const heightGain = 10.0 * Math.log10(30.0 / 10.0) + 3.0 * Math.log10(1.5 / 1.5);
+      const wLoss = weatherLosses[weather];
+      const heightGain = 10.0 * Math.log10(30.0 / 10.0);
 
-      const prx = ptx + gtx + grx - pl0 - plDist - baseAtt - obsLoss + heightGain;
+      const totalPathLoss = pl0 + plDist + baseAtt + obsLoss + wLoss;
+      const eirp = ptx + gtx;
+      const prx = eirp + grx - totalPathLoss + heightGain;
 
-      document.getElementById('display-rssi').innerText = prx.toFixed(1) + ' dBm';
-
-      let status = 'Poor';
-      let statusClass = 'status-poor';
-      let desc = 'RSSI < -100 dBm: Marginal / degraded link with high frame error rates.';
+      // 4. Determine Classification & Probabilities
+      let tier = 'POOR';
+      let tierClass = 'badge-poor';
+      let advice = 'Marginal / degraded connection. Frequent packet loss and disconnects likely. Consider boosting Tx power or using a directional high-gain antenna.';
       let pExc = 0, pGood = 0, pFair = 0, pPoor = 0;
 
-      if (prx >= -70) {
-        status = 'EXCELLENT';
-        statusClass = 'status-excellent';
-        desc = 'RSSI >= -70 dBm: Outstanding signal. Maximum modulation MCS, lowest latency.';
-        pExc = 94; pGood = 6; pFair = 0; pPoor = 0;
-      } else if (prx >= -85) {
-        status = 'GOOD';
-        statusClass = 'status-good';
-        desc = 'RSSI -85 to -70 dBm: Strong, stable RF link. Ideal for HD streaming & VoIP.';
-        pExc = 15; pGood = 75; pFair = 10; pPoor = 0;
-      } else if (prx >= -100) {
-        status = 'FAIR';
-        statusClass = 'status-fair';
-        desc = 'RSSI -100 to -85 dBm: Cell-edge conditions with occasional packet retries.';
-        pExc = 0; pGood = 15; pFair = 75; pPoor = 10;
+      if (prx >= -70.0) {
+        tier = 'EXCELLENT';
+        tierClass = 'badge-excellent';
+        advice = 'Outstanding signal quality! Highest modulation coding scheme (MCS) available. Negligible packet loss; suitable for mission-critical low-latency traffic.';
+        pExc = Math.min(99, Math.round(88 + (prx + 70) * 1.5));
+        pGood = 100 - pExc;
+      } else if (prx >= -85.0) {
+        tier = 'GOOD';
+        tierClass = 'badge-good';
+        advice = 'Strong, reliable signal. Perfect for uninterrupted HD video streaming, voice calls, and fast downloads.';
+        const ratio = (prx - (-85.0)) / 15.0;
+        pGood = Math.round(70 + ratio * 20);
+        pExc = Math.round(ratio * 15);
+        pFair = 100 - pGood - pExc;
+      } else if (prx >= -100.0) {
+        tier = 'FAIR';
+        tierClass = 'badge-fair';
+        advice = 'Cell-edge signal quality. Connection is operational but speeds will throttle with intermittent retries under heavy load.';
+        const ratio = (prx - (-100.0)) / 15.0;
+        pFair = Math.round(68 + ratio * 20);
+        pGood = Math.round(ratio * 14);
+        pPoor = 100 - pFair - pGood;
       } else {
-        pExc = 0; pGood = 0; pFair = 5; pPoor = 95;
+        tier = 'POOR';
+        tierClass = 'badge-poor';
+        pPoor = Math.min(99, Math.round(85 + (-100.0 - prx) * 1.2));
+        pFair = 100 - pPoor;
       }
 
-      const badge = document.getElementById('badge-signal');
-      badge.className = 'status-badge ' + statusClass;
-      badge.innerText = status;
-      document.getElementById('display-desc').innerText = desc;
+      const conf = Math.max(pExc, pGood, pFair, pPoor);
 
-      document.getElementById('bar-excellent').style.width = pExc + '%';
-      document.getElementById('pct-excellent').innerText = pExc + '%';
+      // 5. Update UI
+      document.getElementById('empty-state').style.display = 'none';
+      const resContainer = document.getElementById('prediction-result');
+      resContainer.style.display = 'block';
+
+      const badge = document.getElementById('res-badge');
+      badge.className = 'level-badge ' + tierClass;
+      badge.innerText = tier;
+
+      document.getElementById('res-rssi').innerText = prx.toFixed(1) + ' dBm';
+      document.getElementById('res-conf').innerText = conf + '%';
+      document.getElementById('res-eirp').innerText = eirp.toFixed(1) + ' dBm';
+      document.getElementById('res-loss').innerText = totalPathLoss.toFixed(1) + ' dB';
+      document.getElementById('res-gain').innerText = '+' + (gtx + grx).toFixed(1) + ' dBi';
+      document.getElementById('res-advice').innerText = advice;
+
+      document.getElementById('bar-exc').style.width = pExc + '%';
+      document.getElementById('txt-exc').innerText = pExc + '%';
       document.getElementById('bar-good').style.width = pGood + '%';
-      document.getElementById('pct-good').innerText = pGood + '%';
+      document.getElementById('txt-good').innerText = pGood + '%';
       document.getElementById('bar-fair').style.width = pFair + '%';
-      document.getElementById('pct-fair').innerText = pFair + '%';
+      document.getElementById('txt-fair').innerText = pFair + '%';
       document.getElementById('bar-poor').style.width = pPoor + '%';
-      document.getElementById('pct-poor').innerText = pPoor + '%';
+      document.getElementById('txt-poor').innerText = pPoor + '%';
+
+      // 6. Append to History Table
+      const timeStr = new Date().toLocaleTimeString();
+      historyItems.unshift({
+        time: timeStr,
+        f: f,
+        d: d,
+        env: env,
+        ptx: ptx,
+        prx: prx.toFixed(1),
+        tier: tier,
+        tierClass: tierClass,
+        conf: conf
+      });
+
+      renderHistory();
     }
 
-    [distSlider, freqSlider, powerSlider, txgainSlider, obsSlider, envSelect].forEach(el => {
-      el.addEventListener('input', updateSimulation);
-    });
+    function renderHistory() {
+      const tbody = document.getElementById('history-body');
+      tbody.innerHTML = '';
+      document.getElementById('history-count').innerText = historyItems.length + ' sent signals';
 
-    updateSimulation();
+      historyItems.slice(0, 10).forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.time}</td>
+          <td>${item.f} MHz</td>
+          <td>${item.d} m</td>
+          <td>${item.env}</td>
+          <td>${item.ptx} dBm</td>
+          <td style="color:var(--primary); font-weight:700;">${item.prx} dBm</td>
+          <td><span class="status-pill ${item.tierClass}">${item.tier}</span></td>
+          <td>${item.conf}%</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Run automatically on first load with default parameters
+    window.addEventListener('DOMContentLoaded', () => {
+      sendSignal();
+    });
   </script>
 </body>
 </html>
