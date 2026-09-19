@@ -9,6 +9,7 @@ A production-ready Machine Learning system that predicts Radio Frequency (RF) si
 The system achieves **~90.3% - 91.5% classification accuracy** and **0.982 multiclass ROC-AUC** with strict featurization ordering (zero data leakage), robust input boundary validation, and a Scikit-Learn pipeline ready for edge and cloud deployment.
 
 ---
+<img width="1603" height="875" alt="image" src="https://github.com/user-attachments/assets/c714be26-8c76-4fe8-bb2b-60cb98e8681b" />
 
 ## 📡 Wireless Propagation Physics & Architecture
 
