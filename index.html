@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RF Signal Level Prediction — ML System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --surface: #131b2e;
+      --surface-border: #1e293b;
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.2);
+      --accent: #818cf8;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --card-bg: rgba(19, 27, 46, 0.85);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 0;
+    }
+    header {
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.8) 0%, rgba(11, 15, 25, 0.95) 100%);
+      border-bottom: 1px solid var(--surface-border);
+      padding: 3rem 1.5rem 2.5rem;
+      text-align: center;
+      position: relative;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: var(--primary-glow);
+      color: var(--primary);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, #ffffff 30%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p.lead {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 780px;
+      margin: 0 auto 1.5rem;
+    }
+    .links-row {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.35rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--surface-border);
+    }
+    .btn-outline:hover { background: var(--surface); border-color: var(--primary); }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+
+    /* KPI Highlights */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 3rem;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      backdrop-filter: blur(8px);
+    }
+    .kpi-value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 0.25rem;
+    }
+    .kpi-label {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Section Styling */
+    h2.section-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 2px solid var(--surface-border);
+      padding-bottom: 0.75rem;
+    }
+
+    /* Interactive Simulator */
+    .sim-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      background: var(--card-bg);
+      border: 1px solid var(--surface-border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 3.5rem;
+      backdrop-filter: blur(10px);
+    }
+    @media (max-width: 850px) {
+      .sim-container { grid-template-columns: 1fr; }
+    }
+    .control-group {
+      margin-bottom: 1.25rem;
+    }
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+    .control-value {
+      color: var(--primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    select {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid var(--surface-border);
+      color: white;
+      padding: 0.65rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    /* Results Box */
+    .result-box {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: #0f172a;
+      border: 1px solid var(--surface-border);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+    }
+    .status-badge {
+      display: inline-block;
+      align-self: center;
+      padding: 0.6rem 1.6rem;
+      border-radius: 9999px;
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+    .status-excellent { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; }
+    .status-good { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid #38bdf8; }
+    .status-fair { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
+    .status-poor { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
+
+    .rssi-display {
+      font-size: 2.8rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 0.5rem;
+    }
+    .prob-bar-container {
+      margin-top: 1.5rem;
+      text-align: left;
+    }
+    .prob-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+    }
+    .prob-track {
+      flex-grow: 1;
+      height: 8px;
+      background: #1e293b;
+      border-radius: 4px;
+      margin: 0 1rem;
+      overflow: hidden;
+    }
+    .prob-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    /* Diagnostics Gallery */
+    .plots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3.5rem;
+    }
+    @media (max-width: 600px) {
+      .plots-grid { grid-template-columns: 1fr; }
+    }
+    .plot-card {
+      background: var(--card-bg);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      overflow: hidden;
+    }
+    .plot-card h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--primary);
+    }
+    .plot-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 0.25rem;
+      transition: transform 0.2s ease;
+    }
+
+    /* Code Block */
+    pre {
+      background: #0f172a;
+      border: 1px solid var(--surface-border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: #38bdf8;
+      margin-bottom: 2rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--surface-border);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge">Machine Learning &bull; Wireless Signal Processing</div>
+    <h1>RF Signal Level Prediction System</h1>
+    <p class="lead">
+      Physics-grounded Radio Frequency signal quality classification achieving <strong>90.3% Test Accuracy</strong> and <strong>0.982 Multiclass ROC-AUC</strong> with Scikit-Learn.
+    </p>
+    <div class="links-row">
+      <a class="btn btn-primary" href="https://github.com/nivethithasenthilkumar/RF_Signal" target="_blank">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        View GitHub Repository
+      </a>
+      <a class="btn btn-outline" href="#simulator">Live Interactive Simulator</a>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-value">90.28%</div>
+        <div class="kpi-label">Test Set Accuracy</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">0.9821</div>
+        <div class="kpi-label">Multiclass ROC-AUC (OvR)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">0.9020</div>
+        <div class="kpi-label">Weighted F1-Score</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">12,000</div>
+        <div class="kpi-label">Physics-Grounded Samples</div>
+      </div>
+    </div>
+
+    <!-- Live Simulator -->
+    <h2 class="section-title" id="simulator">⚡ Interactive RF Signal Prediction Simulator</h2>
+    <div class="sim-container">
+      <div class="controls-panel">
+        <div class="control-group">
+          <div class="control-header">
+            <span>Distance (meters)</span>
+            <span class="control-value" id="val-distance">500 m</span>
+          </div>
+          <input type="range" id="input-distance" min="10" max="5000" step="10" value="500">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span>Carrier Frequency</span>
+            <span class="control-value" id="val-freq">2100 MHz</span>
+          </div>
+          <input type="range" id="input-freq" min="700" max="5800" step="50" value="2100">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span>Tx Power (dBm)</span>
+            <span class="control-value" id="val-power">43 dBm</span>
+          </div>
+          <input type="range" id="input-power" min="14" max="46" step="1" value="43">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span>Tx Antenna Gain</span>
+            <span class="control-value" id="val-txgain">15 dBi</span>
+          </div>
+          <input type="range" id="input-txgain" min="2" max="20" step="1" value="15">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span>Physical Obstacles / Walls</span>
+            <span class="control-value" id="val-obstacles">2</span>
+          </div>
+          <input type="range" id="input-obstacles" min="0" max="15" step="1" value="2">
+        </div>
+
+        <div class="control-group">
+          <label style="font-size:0.9rem; font-weight:600; margin-bottom:0.4rem; display:block;">Propagation Environment</label>
+          <select id="input-env">
+            <option value="Rural">Rural (Line-of-Sight, n=2.2)</option>
+            <option value="Suburban" selected>Suburban (Light clutter, n=3.0)</option>
+            <option value="Urban">Urban (High clutter, n=3.7)</option>
+            <option value="Dense Urban">Dense Urban (High-rise, n=4.2)</option>
+            <option value="Indoor">Indoor (Non-line-of-sight, n=4.6)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="result-box">
+        <div id="badge-signal" class="status-badge status-good">GOOD</div>
+        <div class="rssi-display" id="display-rssi">-78.4 dBm</div>
+        <p id="display-desc" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+          Strong, reliable connection. High throughput HD streaming and voice.
+        </p>
+
+        <div class="prob-bar-container">
+          <div class="prob-row">
+            <span>Excellent</span>
+            <div class="prob-track"><div id="bar-excellent" class="prob-fill" style="width: 10%; background:#10b981;"></div></div>
+            <span id="pct-excellent">10%</span>
+          </div>
+          <div class="prob-row">
+            <span>Good</span>
+            <div class="prob-track"><div id="bar-good" class="prob-fill" style="width: 75%; background:#38bdf8;"></div></div>
+            <span id="pct-good">75%</span>
+          </div>
+          <div class="prob-row">
+            <span>Fair</span>
+            <div class="prob-track"><div id="bar-fair" class="prob-fill" style="width: 15%; background:#f59e0b;"></div></div>
+            <span id="pct-fair">15%</span>
+          </div>
+          <div class="prob-row">
+            <span>Poor</span>
+            <div class="prob-track"><div id="bar-poor" class="prob-fill" style="width: 0%; background:#ef4444;"></div></div>
+            <span id="pct-poor">0%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Diagnostic Visualizations -->
+    <h2 class="section-title">📈 Model Evaluation & Diagnostics</h2>
+    <div class="plots-grid">
+      <div class="plot-card">
+        <h3>Confusion Matrix (Raw Counts & Normalized %)</h3>
+        <img src="reports/confusion_matrix.png" alt="Confusion Matrix">
+      </div>
+      <div class="plot-card">
+        <h3>Multiclass One-vs-Rest ROC Curves (AUC = 0.982)</h3>
+        <img src="reports/roc_curves.png" alt="ROC Curves">
+      </div>
+      <div class="plot-card">
+        <h3>Multiclass Precision-Recall Curves</h3>
+        <img src="reports/pr_curves.png" alt="Precision-Recall Curves">
+      </div>
+      <div class="plot-card">
+        <h3>Test Set Permutation Feature Importance</h3>
+        <img src="reports/feature_importance.png" alt="Feature Importance">
+      </div>
+    </div>
+
+    <!-- Python Quickstart -->
+    <h2 class="section-title">💻 Python Production Usage</h2>
+    <pre><code>from src.predict import predict_signal_level
+
+# Execute inference for a mobile user equipment connection
+result = predict_signal_level(
+    frequency_mhz=2100.0,
+    distance_m=650.0,
+    tx_power_dbm=40.0,
+    tx_gain_dbi=16.0,
+    rx_gain_dbi=2.0,
+    environment="Urban",
+    obstacle_count=4,
+    humidity_pct=65.0,
+    weather_condition="Rain"
+)
+
+print(f"Predicted Signal: {result['predicted_signal_level']}")  # e.g. 'Poor' / 'Fair' / 'Good'
+print(f"Confidence:       {result['confidence']:.2%}")
+print(f"Probabilities:    {result['probabilities']}")</code></pre>
+
+  </div>
+
+  <footer>
+    <p>&copy; 2026 Nivethitha Senthilkumar &bull; <a href="https://github.com/nivethithasenthilkumar/RF_Signal" style="color:var(--primary); text-decoration:none;">GitHub Repository</a></p>
+  </footer>
+
+  <script>
+    const distSlider = document.getElementById('input-distance');
+    const freqSlider = document.getElementById('input-freq');
+    const powerSlider = document.getElementById('input-power');
+    const txgainSlider = document.getElementById('input-txgain');
+    const obsSlider = document.getElementById('input-obstacles');
+    const envSelect = document.getElementById('input-env');
+
+    const envParams = {
+      'Rural': { n: 2.2, base: 0.0 },
+      'Suburban': { n: 3.0, base: 4.0 },
+      'Urban': { n: 3.7, base: 8.0 },
+      'Dense Urban': { n: 4.2, base: 13.0 },
+      'Indoor': { n: 4.6, base: 18.0 }
+    };
+
+    function updateSimulation() {
+      const d = parseFloat(distSlider.value);
+      const f = parseFloat(freqSlider.value);
+      const ptx = parseFloat(powerSlider.value);
+      const gtx = parseFloat(txgainSlider.value);
+      const grx = 2.0;
+      const obs = parseFloat(obsSlider.value);
+      const env = envSelect.value;
+
+      document.getElementById('val-distance').innerText = d + ' m';
+      document.getElementById('val-freq').innerText = f + ' MHz';
+      document.getElementById('val-power').innerText = ptx + ' dBm';
+      document.getElementById('val-txgain').innerText = gtx + ' dBi';
+      document.getElementById('val-obstacles').innerText = obs;
+
+      // Physics Link Budget calculation
+      const pl0 = 20.0 * Math.log10(f) - 27.55;
+      const nExp = envParams[env].n;
+      const baseAtt = envParams[env].base;
+      const plDist = 10.0 * nExp * Math.log10(Math.max(d, 1.0));
+      const obsLoss = obs * 2.4;
+      const heightGain = 10.0 * Math.log10(30.0 / 10.0) + 3.0 * Math.log10(1.5 / 1.5);
+
+      const prx = ptx + gtx + grx - pl0 - plDist - baseAtt - obsLoss + heightGain;
+
+      document.getElementById('display-rssi').innerText = prx.toFixed(1) + ' dBm';
+
+      let status = 'Poor';
+      let statusClass = 'status-poor';
+      let desc = 'RSSI < -100 dBm: Marginal / degraded link with high frame error rates.';
+      let pExc = 0, pGood = 0, pFair = 0, pPoor = 0;
+
+      if (prx >= -70) {
+        status = 'EXCELLENT';
+        statusClass = 'status-excellent';
+        desc = 'RSSI >= -70 dBm: Outstanding signal. Maximum modulation MCS, lowest latency.';
+        pExc = 94; pGood = 6; pFair = 0; pPoor = 0;
+      } else if (prx >= -85) {
+        status = 'GOOD';
+        statusClass = 'status-good';
+        desc = 'RSSI -85 to -70 dBm: Strong, stable RF link. Ideal for HD streaming & VoIP.';
+        pExc = 15; pGood = 75; pFair = 10; pPoor = 0;
+      } else if (prx >= -100) {
+        status = 'FAIR';
+        statusClass = 'status-fair';
+        desc = 'RSSI -100 to -85 dBm: Cell-edge conditions with occasional packet retries.';
+        pExc = 0; pGood = 15; pFair = 75; pPoor = 10;
+      } else {
+        pExc = 0; pGood = 0; pFair = 5; pPoor = 95;
+      }
+
+      const badge = document.getElementById('badge-signal');
+      badge.className = 'status-badge ' + statusClass;
+      badge.innerText = status;
+      document.getElementById('display-desc').innerText = desc;
+
+      document.getElementById('bar-excellent').style.width = pExc + '%';
+      document.getElementById('pct-excellent').innerText = pExc + '%';
+      document.getElementById('bar-good').style.width = pGood + '%';
+      document.getElementById('pct-good').innerText = pGood + '%';
+      document.getElementById('bar-fair').style.width = pFair + '%';
+      document.getElementById('pct-fair').innerText = pFair + '%';
+      document.getElementById('bar-poor').style.width = pPoor + '%';
+      document.getElementById('pct-poor').innerText = pPoor + '%';
+    }
+
+    [distSlider, freqSlider, powerSlider, txgainSlider, obsSlider, envSelect].forEach(el => {
+      el.addEventListener('input', updateSimulation);
+    });
+
+    updateSimulation();
+  </script>
+</body>
+</html>
